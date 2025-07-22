@@ -636,4 +636,134 @@
         </div>
     </div>
 </body>
+<!-- ------------------------------------------- -->
+<!-- SECCIÓN DE REGISTRO Y DESCARGA DE PESAJE   -->
+<!-- ------------------------------------------- -->
+<div class="registro-section" style="margin:40px 0 0 0; background: #f7f1ff; border-radius: 8px; padding: 28px 16px 20px 16px; box-shadow: 0 2px 8px rgba(118,75,162,0.07);">
+  <h2 style="color:#764ba2;">📝 Registro de Pesaje</h2>
+  <form id="pesajeForm" autocomplete="off" style="margin-bottom:14px;">
+    <label>
+      Zona de pesaje:
+      <select name="zona" required>
+        <option value="">Selecciona...</option>
+        <option>Recepción</option>
+        <option>Báscula</option>
+        <option>Empaque</option>
+        <option>Salida</option>
+      </select>
+    </label>
+    <label style="margin-left:10px;">
+      Etapa:
+      <select name="etapa" required>
+        <option value="">Selecciona...</option>
+        <option>Calibración</option>
+        <option>Tara</option>
+        <option>Pesaje Bruto</option>
+        <option>Pesaje Neto</option>
+        <option>Clasificación</option>
+        <option>Empaque</option>
+        <option>Salida</option>
+      </select>
+    </label>
+    <label style="margin-left:10px;">
+      Peso:
+      <input type="number" name="peso" step="0.01" min="0" required style="width:80px;">
+    </label>
+    <label style="margin-left:10px;">
+      Unidades:
+      <select name="unidad" required>
+        <option>kg</option>
+        <option>g</option>
+      </select>
+    </label>
+    <button type="submit" style="background: #764ba2; color: #fff; border: none; padding: 6px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1em; margin-left: 12px;">Agregar registro</button>
+  </form>
+  <button class="descargar-btn" onclick="descargarRegistros()" style="background: #43cea2; color: #19202e; border: none; padding: 8px 22px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1em; margin-bottom: 16px; margin-top: 6px;">Descargar Excel</button>
+  <table id="tablaRegistros" border="1" cellpadding="5" style="width:100%;background:white;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.07);">
+    <thead>
+      <tr>
+        <th>Zona</th>
+        <th>Etapa</th>
+        <th>Peso</th>
+        <th>Unidades</th>
+        <th>Fecha/Hora</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+
+<!-- Librería xlsx.js para exportar a Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+  const KEY = 'pesajes_frutas_v1';
+
+  function cargarRegistros() {
+    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
+    const tbody = document.querySelector('#tablaRegistros tbody');
+    tbody.innerHTML = '';
+    registros.forEach((r, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.zona}</td>
+        <td>${r.etapa}</td>
+        <td>${r.peso}</td>
+        <td>${r.unidad}</td>
+        <td>${r.fecha}</td>
+        <td><button onclick="eliminarRegistro(${idx})" title="Eliminar" style="color:#fff;background:#f55;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;">✖</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function guardarRegistro(reg) {
+    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
+    registros.push(reg);
+    localStorage.setItem(KEY, JSON.stringify(registros));
+    cargarRegistros();
+  }
+
+  function eliminarRegistro(idx) {
+    if (!confirm('¿Deseas eliminar este registro?')) return;
+    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
+    registros.splice(idx, 1);
+    localStorage.setItem(KEY, JSON.stringify(registros));
+    cargarRegistros();
+  }
+
+  document.getElementById('pesajeForm').onsubmit = function(e) {
+    e.preventDefault();
+    const data = new FormData(this);
+    const reg = {
+      zona: data.get('zona'),
+      etapa: data.get('etapa'),
+      peso: data.get('peso'),
+      unidad: data.get('unidad'),
+      fecha: new Date().toLocaleString('es-CO')
+    };
+    guardarRegistro(reg);
+    this.reset();
+  };
+
+  function descargarRegistros() {
+    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
+    if (registros.length === 0) {
+      alert('No hay registros para descargar');
+      return;
+    }
+    // Convertimos a formato Excel
+    const ws = XLSX.utils.json_to_sheet(registros);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pesajes");
+    XLSX.writeFile(wb, "registros_pesaje.xlsx");
+  }
+
+  // Inicializar tabla al cargar
+  cargarRegistros();
+</script>
+<!-- ------------------------------------------- -->
+<!--      FIN SECCIÓN REGISTRO DE PESAJE         -->
+<!-- ------------------------------------------- -->
 </html>
