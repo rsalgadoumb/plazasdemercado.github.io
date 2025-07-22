@@ -546,43 +546,54 @@
     </div>
 </body>
 <!-- FORMULARIO DE REGISTRO DE PESAJE POR ETAPA -->
-<form id="form-pesaje">
-  <h2>Registro de Pesaje de Frutas</h2>
+<!-- FORMULARIO DE REGISTRO DE PESAJE Y DESPERDICIO -->
+<form id="form-pesaje-etapa">
+  <h2>Registro de Pesaje por Etapa</h2>
   <div>
     <label for="fecha">Fecha:</label>
     <input type="date" id="fecha" name="fecha" required>
   </div>
   <div>
-    <label for="productor">Productor:</label>
-    <input type="text" id="productor" name="productor" placeholder="Nombre del productor" required>
+    <label for="hora">Hora:</label>
+    <input type="time" id="hora" name="hora" required>
   </div>
   <div>
-    <label for="producto">Producto:</label>
-    <select id="producto" name="producto" required>
+    <label for="etapa">Proceso / Etapa:</label>
+    <select id="etapa" name="etapa" required>
       <option value="" disabled selected>Seleccione...</option>
-      <option value="Mango">Mango</option>
-      <option value="Piña">Piña</option>
-      <option value="Banano">Banano</option>
-      <option value="Aguacate">Aguacate</option>
-      <option value="Otra">Otra</option>
+      <option>Recepción y Registro (Pesaje Inicial)</option>
+      <option>Clasificación por Calidad (Pesaje por Categoría)</option>
+      <option>Almacenamiento (Muestreo por Zonas)</option>
+      <option>Comercialización</option>
+      <option>Descarte Directo</option>
+      <option>Control Final (Pesaje Total Residuos)</option>
     </select>
   </div>
   <div>
-    <label for="cantidad">Cantidad (Kg):</label>
-    <input type="number" id="cantidad" name="cantidad" min="1" step="0.01" required>
+    <label for="tipo_desp">Tipo de desperdicio / material:</label>
+    <input type="text" id="tipo_desp" name="tipo_desp" placeholder="Ej: cáscara, fruta dañada" required>
   </div>
   <div>
-    <label for="lote">Lote:</label>
-    <input type="text" id="lote" name="lote" placeholder="Código de lote" required>
+    <label for="cantidad">Cantidad:</label>
+    <input type="number" id="cantidad" name="cantidad" min="0.01" step="0.01" required>
   </div>
-  <button type="submit">Registrar Pesaje</button>
+  <div>
+    <label for="unidades">Unidades:</label>
+    <select id="unidades" name="unidades" required>
+      <option value="Kg">Kg</option>
+      <option value="g">g</option>
+      <option value="ton">ton</option>
+      <option value="unidades">unidades</option>
+    </select>
+  </div>
+  <button type="submit">Guardar Registro</button>
 </form>
-<button id="exportar-excel" type="button">Exportar registros a Excel</button>
+<button id="exportar-excel-etapa" type="button">Exportar registros a Excel</button>
 
 <style>
-  #form-pesaje {
+  #form-pesaje-etapa {
     background: #fff;
-    max-width: 480px;
+    max-width: 540px;
     margin: 40px auto;
     border-radius: 12px;
     box-shadow: 0 4px 22px #d7cfff70;
@@ -591,17 +602,17 @@
     flex-direction: column;
     gap: 18px;
   }
-  #form-pesaje h2 {
+  #form-pesaje-etapa h2 {
     text-align: center;
     color: #764ba2;
     margin-bottom: 16px;
   }
-  #form-pesaje label {
+  #form-pesaje-etapa label {
     color: #22215B;
     font-weight: 600;
     margin-bottom: 2px;
   }
-  #form-pesaje input, #form-pesaje select {
+  #form-pesaje-etapa input, #form-pesaje-etapa select {
     background: #f7fafc;
     color: #222;
     border: 1.5px solid #764ba2;
@@ -613,10 +624,10 @@
     outline: none;
     transition: border-color 0.2s;
   }
-  #form-pesaje input:focus, #form-pesaje select:focus {
+  #form-pesaje-etapa input:focus, #form-pesaje-etapa select:focus {
     border-color: #f39c12;
   }
-  #form-pesaje button[type="submit"] {
+  #form-pesaje-etapa button[type="submit"] {
     margin-top: 18px;
     background: linear-gradient(90deg,#764ba2,#667eea);
     color: #fff;
@@ -629,10 +640,10 @@
     box-shadow: 0 2px 8px #d7cfff50;
     transition: background 0.15s;
   }
-  #form-pesaje button[type="submit"]:hover {
+  #form-pesaje-etapa button[type="submit"]:hover {
     background: linear-gradient(90deg,#667eea,#f39c12);
   }
-  #exportar-excel {
+  #exportar-excel-etapa {
     margin: 18px auto 0 auto;
     display: block;
     background: linear-gradient(135deg,#f39c12,#f4d03f);
@@ -646,38 +657,37 @@
     box-shadow: 0 2px 8px #ffd70030;
     transition: background 0.15s;
   }
-  #exportar-excel:hover {
+  #exportar-excel-etapa:hover {
     background: linear-gradient(135deg,#f39c12 80%,#764ba2 100%);
   }
 </style>
-
 <script>
   // Guarda registros localmente y exporta a Excel (CSV)
-  let registros = [];
+  let registrosEtapa = [];
 
-  document.getElementById('form-pesaje').addEventListener('submit', function(e) {
+  document.getElementById('form-pesaje-etapa').addEventListener('submit', function(e) {
     e.preventDefault();
     const data = new FormData(this);
     const obj = {};
     for (let pair of data.entries()) obj[pair[0]] = pair[1];
-    registros.push(obj);
-    alert('Datos registrados correctamente');
+    registrosEtapa.push(obj);
+    alert('Registro guardado correctamente');
     this.reset();
   });
 
-  document.getElementById('exportar-excel').addEventListener('click', function() {
-    if (registros.length === 0) {
+  document.getElementById('exportar-excel-etapa').addEventListener('click', function() {
+    if (registrosEtapa.length === 0) {
       alert('No hay registros para exportar.');
       return;
     }
-    const campos = Object.keys(registros[0]);
-    const filas = registros.map(reg => campos.map(c => `"${(reg[c]||"").replace(/"/g, '""')}"`).join(","));
+    const campos = Object.keys(registrosEtapa[0]);
+    const filas = registrosEtapa.map(reg => campos.map(c => `"${(reg[c]||"").replace(/"/g, '""')}"`).join(","));
     let csv = campos.join(",") + "\n" + filas.join("\n");
     let blob = new Blob([csv], {type: 'text/csv'});
     let url = URL.createObjectURL(blob);
     let a = document.createElement("a");
     a.href = url;
-    a.download = "registros_pesaje.csv";
+    a.download = "registros_pesaje_etapa.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
