@@ -546,78 +546,142 @@
     </div>
 </body>
 <!-- FORMULARIO DE REGISTRO DE PESAJE POR ETAPA -->
-<div class="flow-step" style="margin-top: 30px;">
-  <div class="process">
-    <strong>📝 REGISTRO DE PESAJE</strong>
-    <form id="form-pesaje" style="margin-top: 15px; display: flex; flex-direction: column; gap: 12px;">
-      <!-- Selección de etapa -->
-      <label for="etapa" style="font-weight:600;">Etapa del proceso:</label>
-      <select id="etapa" name="etapa" class="step-detail" style="margin-bottom:12px;">
-        <option value="recepcion">Recepción y Registro</option>
-        <option value="clasificacion">Clasificación por Calidad</option>
-        <option value="almacenamiento">Almacenamiento</option>
-        <option value="comercializacion">Comercialización</option>
-        <option value="descarte">Descarte Inmediato</option>
-        <option value="control_final">Control Final</option>
-      </select>
-      <!-- Campos dinámicos según etapa -->
-      <div id="campos-etapa"></div>
-      <button type="submit" style="margin-top:15px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:12px 30px;border-radius:8px;font-weight:700;cursor:pointer;">Registrar</button>
-    </form>
+<form id="form-pesaje">
+  <h2>Registro de Pesaje de Frutas</h2>
+  <div>
+    <label for="fecha">Fecha:</label>
+    <input type="date" id="fecha" name="fecha" required>
   </div>
-</div>
+  <div>
+    <label for="productor">Productor:</label>
+    <input type="text" id="productor" name="productor" placeholder="Nombre del productor" required>
+  </div>
+  <div>
+    <label for="producto">Producto:</label>
+    <select id="producto" name="producto" required>
+      <option value="" disabled selected>Seleccione...</option>
+      <option value="Mango">Mango</option>
+      <option value="Piña">Piña</option>
+      <option value="Banano">Banano</option>
+      <option value="Aguacate">Aguacate</option>
+      <option value="Otra">Otra</option>
+    </select>
+  </div>
+  <div>
+    <label for="cantidad">Cantidad (Kg):</label>
+    <input type="number" id="cantidad" name="cantidad" min="1" step="0.01" required>
+  </div>
+  <div>
+    <label for="lote">Lote:</label>
+    <input type="text" id="lote" name="lote" placeholder="Código de lote" required>
+  </div>
+  <button type="submit">Registrar Pesaje</button>
+</form>
+<button id="exportar-excel" type="button">Exportar registros a Excel</button>
+
+<style>
+  #form-pesaje {
+    background: #fff;
+    max-width: 480px;
+    margin: 40px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 22px #d7cfff70;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  #form-pesaje h2 {
+    text-align: center;
+    color: #764ba2;
+    margin-bottom: 16px;
+  }
+  #form-pesaje label {
+    color: #22215B;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  #form-pesaje input, #form-pesaje select {
+    background: #f7fafc;
+    color: #222;
+    border: 1.5px solid #764ba2;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 1em;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #form-pesaje input:focus, #form-pesaje select:focus {
+    border-color: #f39c12;
+  }
+  #form-pesaje button[type="submit"] {
+    margin-top: 18px;
+    background: linear-gradient(90deg,#764ba2,#667eea);
+    color: #fff;
+    border: none;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px #d7cfff50;
+    transition: background 0.15s;
+  }
+  #form-pesaje button[type="submit"]:hover {
+    background: linear-gradient(90deg,#667eea,#f39c12);
+  }
+  #exportar-excel {
+    margin: 18px auto 0 auto;
+    display: block;
+    background: linear-gradient(135deg,#f39c12,#f4d03f);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.05em;
+    box-shadow: 0 2px 8px #ffd70030;
+    transition: background 0.15s;
+  }
+  #exportar-excel:hover {
+    background: linear-gradient(135deg,#f39c12 80%,#764ba2 100%);
+  }
+</style>
 
 <script>
-const camposPorEtapa = {
-  recepcion: `
-    <div class="step-detail"><label>Tipo de fruta:<br><input type="text" name="tipo_fruta" class="step-detail" required></label></div>
-    <div class="step-detail"><label>Origen:<br><input type="text" name="origen" class="step-detail" required></label></div>
-    <div class="step-detail"><label>Fecha/Hora:<br><input type="datetime-local" name="fecha_hora" class="step-detail" required></label></div>
-    <div class="step-detail"><label>Peso bruto total (kg):<br><input type="number" step="any" name="peso_bruto" class="step-detail" required></label></div>
-  `,
-  clasificacion: `
-    <div class="step-detail"><label>Peso óptima (kg):<br><input type="number" step="any" name="peso_optima" class="step-detail"></label></div>
-    <div class="step-detail"><label>Peso regular (kg):<br><input type="number" step="any" name="peso_regular" class="step-detail"></label></div>
-    <div class="step-detail"><label>Peso descarte (kg):<br><input type="number" step="any" name="peso_descarte" class="step-detail"></label></div>
-    <div class="step-detail"><label>% deterioro:<br><input type="number" step="any" name="porcentaje_deterioro" class="step-detail"></label></div>
-    <div class="step-detail"><label>Causas de descarte:<br><input type="text" name="causas_descarte" class="step-detail"></label></div>
-  `,
-  almacenamiento: `
-    <div class="step-detail"><label>Peso deterioro diario (kg):<br><input type="number" step="any" name="peso_deterioro" class="step-detail"></label></div>
-    <div class="step-detail"><label>Condiciones ambientales:<br><input type="text" name="condiciones_ambientales" class="step-detail"></label></div>
-  `,
-  comercializacion: `
-    <div class="step-detail"><label>Peso vendido (kg):<br><input type="number" step="any" name="peso_vendido" class="step-detail"></label></div>
-    <div class="step-detail"><label>Precio ($):<br><input type="number" step="any" name="precio" class="step-detail"></label></div>
-    <div class="step-detail"><label>Tiempo rotación (días):<br><input type="number" name="tiempo_rotacion" class="step-detail"></label></div>
-  `,
-  descarte: `
-    <div class="step-detail"><label>Peso residuos (kg):<br><input type="number" step="any" name="peso_residuos" class="step-detail"></label></div>
-    <div class="step-detail"><label>Clasificación tipo:<br><input type="text" name="clasificacion_tipo" class="step-detail"></label></div>
-  `,
-  control_final: `
-    <div class="step-detail"><label>Peso total desperdicios (kg):<br><input type="number" step="any" name="peso_total" class="step-detail"></label></div>
-    <div class="step-detail"><label>Clasificación por origen:<br><input type="text" name="clasificacion_origen" class="step-detail"></label></div>
-    <div class="step-detail"><label>Destino final:<br><input type="text" name="destino_final" class="step-detail"></label></div>
-  `
-};
+  // Guarda registros localmente y exporta a Excel (CSV)
+  let registros = [];
 
-function mostrarCampos() {
-  const etapa = document.getElementById('etapa').value;
-  document.getElementById('campos-etapa').innerHTML = camposPorEtapa[etapa];
-}
+  document.getElementById('form-pesaje').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = new FormData(this);
+    const obj = {};
+    for (let pair of data.entries()) obj[pair[0]] = pair[1];
+    registros.push(obj);
+    alert('Datos registrados correctamente');
+    this.reset();
+  });
 
-// Inicializa campos al cargar y al cambiar etapa
-document.addEventListener('DOMContentLoaded', mostrarCampos);
-document.getElementById('etapa').addEventListener('change', mostrarCampos);
-
-// Opcional: Previene envío real del formulario y muestra los datos en consola (puedes quitarlo si tienes backend)
-document.getElementById('form-pesaje').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const data = new FormData(this);
-  const obj = {};
-  for (let pair of data.entries()) obj[pair[0]] = pair[1];
-  alert('Datos registrados:\n' + JSON.stringify(obj, null, 2));
-});
+  document.getElementById('exportar-excel').addEventListener('click', function() {
+    if (registros.length === 0) {
+      alert('No hay registros para exportar.');
+      return;
+    }
+    const campos = Object.keys(registros[0]);
+    const filas = registros.map(reg => campos.map(c => `"${(reg[c]||"").replace(/"/g, '""')}"`).join(","));
+    let csv = campos.join(",") + "\n" + filas.join("\n");
+    let blob = new Blob([csv], {type: 'text/csv'});
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "registros_pesaje.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 </script>
 </html>
