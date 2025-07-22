@@ -544,6 +544,7 @@
             </div>
         </div>
     </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 <!-- FORMULARIO DE REGISTRO DE PESAJE POR ETAPA -->
 <!-- FORMULARIO DE REGISTRO DE PESAJE Y DESPERDICIO -->
@@ -680,18 +681,10 @@
       alert('No hay registros para exportar.');
       return;
     }
-    const campos = Object.keys(registrosEtapa[0]);
-    const filas = registrosEtapa.map(reg => campos.map(c => `"${(reg[c]||"").replace(/"/g, '""')}"`).join(","));
-    let csv = campos.join(",") + "\n" + filas.join("\n");
-    let blob = new Blob([csv], {type: 'text/csv'});
-    let url = URL.createObjectURL(blob);
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "registros_pesaje_etapa.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const ws = XLSX.utils.json_to_sheet(registrosEtapa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Registros");
+    XLSX.writeFile(wb, "registros_pesaje_etapa.xlsx");
   });
 </script>
 </html>
