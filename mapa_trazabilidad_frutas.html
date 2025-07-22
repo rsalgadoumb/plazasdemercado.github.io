@@ -545,134 +545,79 @@
         </div>
     </div>
 </body>
-<!-- ------------------------------------------- -->
-<!-- SECCIÓN DE REGISTRO Y DESCARGA DE PESAJE   -->
-<!-- ------------------------------------------- -->
-<div class="registro-section" style="margin:40px 0 0 0; background: #f7f1ff; border-radius: 8px; padding: 28px 16px 20px 16px; box-shadow: 0 2px 8px rgba(118,75,162,0.07);">
-  <h2 style="color:#764ba2;">📝 Registro de Pesaje</h2>
-  <form id="pesajeForm" autocomplete="off" style="margin-bottom:14px;">
-    <label>
-      Zona de pesaje:
-      <select name="zona" required>
-        <option value="">Selecciona...</option>
-        <option>Recepción</option>
-        <option>Báscula</option>
-        <option>Empaque</option>
-        <option>Salida</option>
+<!-- FORMULARIO DE REGISTRO DE PESAJE POR ETAPA -->
+<div class="flow-step" style="margin-top: 30px;">
+  <div class="process">
+    <strong>📝 REGISTRO DE PESAJE</strong>
+    <form id="form-pesaje" style="margin-top: 15px; display: flex; flex-direction: column; gap: 12px;">
+      <!-- Selección de etapa -->
+      <label for="etapa" style="font-weight:600;">Etapa del proceso:</label>
+      <select id="etapa" name="etapa" class="step-detail" style="margin-bottom:12px;">
+        <option value="recepcion">Recepción y Registro</option>
+        <option value="clasificacion">Clasificación por Calidad</option>
+        <option value="almacenamiento">Almacenamiento</option>
+        <option value="comercializacion">Comercialización</option>
+        <option value="descarte">Descarte Inmediato</option>
+        <option value="control_final">Control Final</option>
       </select>
-    </label>
-    <label style="margin-left:10px;">
-      Etapa:
-      <select name="etapa" required>
-        <option value="">Selecciona...</option>
-        <option>Calibración</option>
-        <option>Tara</option>
-        <option>Pesaje Bruto</option>
-        <option>Pesaje Neto</option>
-        <option>Clasificación</option>
-        <option>Empaque</option>
-        <option>Salida</option>
-      </select>
-    </label>
-    <label style="margin-left:10px;">
-      Peso:
-      <input type="number" name="peso" step="0.01" min="0" required style="width:80px;">
-    </label>
-    <label style="margin-left:10px;">
-      Unidades:
-      <select name="unidad" required>
-        <option>kg</option>
-        <option>g</option>
-      </select>
-    </label>
-    <button type="submit" style="background: #764ba2; color: #fff; border: none; padding: 6px 18px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1em; margin-left: 12px;">Agregar registro</button>
-  </form>
-  <button class="descargar-btn" onclick="descargarRegistros()" style="background: #43cea2; color: #19202e; border: none; padding: 8px 22px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1em; margin-bottom: 16px; margin-top: 6px;">Descargar Excel</button>
-  <table id="tablaRegistros" border="1" cellpadding="5" style="width:100%;background:white;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.07);">
-    <thead>
-      <tr>
-        <th>Zona</th>
-        <th>Etapa</th>
-        <th>Peso</th>
-        <th>Unidades</th>
-        <th>Fecha/Hora</th>
-        <th>Eliminar</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+      <!-- Campos dinámicos según etapa -->
+      <div id="campos-etapa"></div>
+      <button type="submit" style="margin-top:15px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:12px 30px;border-radius:8px;font-weight:700;cursor:pointer;">Registrar</button>
+    </form>
+  </div>
 </div>
 
-<!-- Librería xlsx.js para exportar a Excel -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-  const KEY = 'pesajes_frutas_v1';
+const camposPorEtapa = {
+  recepcion: `
+    <div class="step-detail"><label>Tipo de fruta:<br><input type="text" name="tipo_fruta" class="step-detail" required></label></div>
+    <div class="step-detail"><label>Origen:<br><input type="text" name="origen" class="step-detail" required></label></div>
+    <div class="step-detail"><label>Fecha/Hora:<br><input type="datetime-local" name="fecha_hora" class="step-detail" required></label></div>
+    <div class="step-detail"><label>Peso bruto total (kg):<br><input type="number" step="any" name="peso_bruto" class="step-detail" required></label></div>
+  `,
+  clasificacion: `
+    <div class="step-detail"><label>Peso óptima (kg):<br><input type="number" step="any" name="peso_optima" class="step-detail"></label></div>
+    <div class="step-detail"><label>Peso regular (kg):<br><input type="number" step="any" name="peso_regular" class="step-detail"></label></div>
+    <div class="step-detail"><label>Peso descarte (kg):<br><input type="number" step="any" name="peso_descarte" class="step-detail"></label></div>
+    <div class="step-detail"><label>% deterioro:<br><input type="number" step="any" name="porcentaje_deterioro" class="step-detail"></label></div>
+    <div class="step-detail"><label>Causas de descarte:<br><input type="text" name="causas_descarte" class="step-detail"></label></div>
+  `,
+  almacenamiento: `
+    <div class="step-detail"><label>Peso deterioro diario (kg):<br><input type="number" step="any" name="peso_deterioro" class="step-detail"></label></div>
+    <div class="step-detail"><label>Condiciones ambientales:<br><input type="text" name="condiciones_ambientales" class="step-detail"></label></div>
+  `,
+  comercializacion: `
+    <div class="step-detail"><label>Peso vendido (kg):<br><input type="number" step="any" name="peso_vendido" class="step-detail"></label></div>
+    <div class="step-detail"><label>Precio ($):<br><input type="number" step="any" name="precio" class="step-detail"></label></div>
+    <div class="step-detail"><label>Tiempo rotación (días):<br><input type="number" name="tiempo_rotacion" class="step-detail"></label></div>
+  `,
+  descarte: `
+    <div class="step-detail"><label>Peso residuos (kg):<br><input type="number" step="any" name="peso_residuos" class="step-detail"></label></div>
+    <div class="step-detail"><label>Clasificación tipo:<br><input type="text" name="clasificacion_tipo" class="step-detail"></label></div>
+  `,
+  control_final: `
+    <div class="step-detail"><label>Peso total desperdicios (kg):<br><input type="number" step="any" name="peso_total" class="step-detail"></label></div>
+    <div class="step-detail"><label>Clasificación por origen:<br><input type="text" name="clasificacion_origen" class="step-detail"></label></div>
+    <div class="step-detail"><label>Destino final:<br><input type="text" name="destino_final" class="step-detail"></label></div>
+  `
+};
 
-  function cargarRegistros() {
-    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
-    const tbody = document.querySelector('#tablaRegistros tbody');
-    tbody.innerHTML = '';
-    registros.forEach((r, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${r.zona}</td>
-        <td>${r.etapa}</td>
-        <td>${r.peso}</td>
-        <td>${r.unidad}</td>
-        <td>${r.fecha}</td>
-        <td><button onclick="eliminarRegistro(${idx})" title="Eliminar" style="color:#fff;background:#f55;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;">✖</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+function mostrarCampos() {
+  const etapa = document.getElementById('etapa').value;
+  document.getElementById('campos-etapa').innerHTML = camposPorEtapa[etapa];
+}
 
-  function guardarRegistro(reg) {
-    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
-    registros.push(reg);
-    localStorage.setItem(KEY, JSON.stringify(registros));
-    cargarRegistros();
-  }
+// Inicializa campos al cargar y al cambiar etapa
+document.addEventListener('DOMContentLoaded', mostrarCampos);
+document.getElementById('etapa').addEventListener('change', mostrarCampos);
 
-  function eliminarRegistro(idx) {
-    if (!confirm('¿Deseas eliminar este registro?')) return;
-    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
-    registros.splice(idx, 1);
-    localStorage.setItem(KEY, JSON.stringify(registros));
-    cargarRegistros();
-  }
-
-  document.getElementById('pesajeForm').onsubmit = function(e) {
-    e.preventDefault();
-    const data = new FormData(this);
-    const reg = {
-      zona: data.get('zona'),
-      etapa: data.get('etapa'),
-      peso: data.get('peso'),
-      unidad: data.get('unidad'),
-      fecha: new Date().toLocaleString('es-CO')
-    };
-    guardarRegistro(reg);
-    this.reset();
-  };
-
-  function descargarRegistros() {
-    const registros = JSON.parse(localStorage.getItem(KEY) || '[]');
-    if (registros.length === 0) {
-      alert('No hay registros para descargar');
-      return;
-    }
-    // Convertimos a formato Excel
-    const ws = XLSX.utils.json_to_sheet(registros);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pesajes");
-    XLSX.writeFile(wb, "registros_pesaje.xlsx");
-  }
-
-  // Inicializar tabla al cargar
-  cargarRegistros();
+// Opcional: Previene envío real del formulario y muestra los datos en consola (puedes quitarlo si tienes backend)
+document.getElementById('form-pesaje').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const data = new FormData(this);
+  const obj = {};
+  for (let pair of data.entries()) obj[pair[0]] = pair[1];
+  alert('Datos registrados:\n' + JSON.stringify(obj, null, 2));
+});
 </script>
-<!-- ------------------------------------------- -->
-<!--      FIN SECCIÓN REGISTRO DE PESAJE         -->
-<!-- ------------------------------------------- -->
 </html>
